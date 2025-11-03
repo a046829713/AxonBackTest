@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "AxonBackTest"
+dynamic = ["version"]
+authors = [
+  { name="Louis", email="a046829713@example.com" },
+]
+description = "A flexible backtesting framework for financial strategies."
+readme = "README.md"
+requires-python = ">=3.8"
+license = { file = "LICENSE" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "pandas",
+    "matplotlib",
+    "numpy",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/a046829713/AxonBackTest"
+
+[tool.setuptools.dynamic]
+version = {attr = "AxonBackTest.__version__"}
+
+[tool.setuptools]
+packages = ["AxonBackTest"]

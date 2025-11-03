@@ -22,6 +22,8 @@ class StrategyConfig:
 
 class PortfolioManagementConfig:
     def __init__(self, capital: float = 15000.0, leverage: float = 4.0, startDate:str = None, endDate:str = None):
+        assert isinstance(capital, (int, float)), "capital must be an integer or a float"
+        assert isinstance(leverage, (int, float)), "leverage must be an integer or a float"
         self.capital = capital
         self.leverage = leverage
         self.startDate = startDate
