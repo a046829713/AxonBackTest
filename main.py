@@ -1,41 +1,22 @@
-import numpy as np
 import pandas as pd
-from AxonBackTest.PorfolioTrader import PortfolioManagement
-from AxonBackTest.backtester import BackTester
-from AxonBackTest.config import PortfolioConfig, PresetFactory
+from AxonBackTest.config import PresetFactory
 from AxonBackTest.strategy import Strategy
-import time
 
-def generate_fake_signals(df: pd.DataFrame):
-    # This part is very important, original is order think,
-    # buy We need to change thought.
-    # right now is Target signal.
-    # traget_signal_arrays = np.random.randint(-1, 2, size=len(self.df))
-
-    choices = [-1, 0, 1]
-    probabilities = [0.33, 0.33, 0.34]
-    traget_signal_arrays = np.random.choice(choices, size=len(df), p=probabilities)
-    return traget_signal_arrays
-
-
-def generate_fake_postionsize(df: pd.DataFrame):
-    PositionSizing_arrays = np.random.rand(len(df))
-    return PositionSizing_arrays
-
-
-# 1.preset all config.
-BTCUSDT_strategy = Strategy(
-    PresetFactory.crypto_perpetual(strategy_name="BTCUSDT-DQN-30K",
-                                   history_data_path="/home/b0457812963/Mamba3RL/SynapseX/Brain/simulation/test_data/BTCUSDT-F-30-Min.csv"),
-    generate_signals_fn=generate_fake_signals,
-    generate_postion_size_fn=generate_fake_postionsize,
+# 1. Preset configuration for AAVEUSDT Perpetual Strategy
+aave_config = PresetFactory.crypto_perpetual(
+    symbol="AAVEUSDT",
+    strategy_name="AAVEUSDT-RL-30M",
+    history_data_path="AAVEUSDT_orders.csv",
 )
 
+# 2. Initialize Strategy and load data from CSV
+strategy = Strategy(config=aave_config)
+strategy.load_data_from_csv()
 
-# 2. put strategy to PortfolioManagement
-pfm = PortfolioManagement(PortfolioConfig(initial_capital=15000, formal=False))
-pfm.register_strategys(BTCUSDT_strategy)
-
-
-# 3.active backtest
-BackTester(manager=pfm)
+# 3. Preview loaded data and target position changes
+print("=== Strategy Data Successfully Loaded ===")
+print("Strategy Name:", strategy.config.name)
+print("Instrument Symbol:", strategy.config.instrument.symbol)
+print("Data Shape:", strategy.df.shape)
+print("\nFirst 10 Bars Overview:")
+print(strategy.df.head(10))
