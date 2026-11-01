@@ -413,32 +413,70 @@ class PresetFactory:
         fee_pct: float = 0.0005,
         timeframe: str = "30m",
         history_data_path: str = "simulation/",
+        multiplier: float = 1.0,
+        tick_size: float = 0.1,
+        lot_size: float = 0.001,
+        min_order_qty: float = 0.001,
+        currency: str = "USDT",
+        initial_margin_rate: float = 1.0,
+        maintenance_margin_rate: float = 0.05,
+        slippage_type: SlippageType = SlippageType.PERCENTAGE,
+        fee_type: FeeType = FeeType.PERCENTAGE,
+        min_fee: float = 0.0,
+        tax_rate: float = 0.0,
+        tax_type: TaxType = TaxType.ZERO,
+        extra_params: Optional[Dict[str, Any]] = None,
     ) -> StrategyConfig:
         """
-        Institutional preset for Crypto Linear Perpetual Contracts (e.g., Binance BTCUSDT).
-        - Multiplier: 1.0
-        - Tick Size: 0.1 USDT
-        - Lot Size: 0.001 BTC
-        - Min Order Qty: 0.001 BTC
-        - Slippage: Percentage (default 0.05% / 5 bps)
-        - Fee: Percentage (default 0.05% / 5 bps taker fee)
-        - Tax: Zero (tax-exempt)
-        - Currency: USDT
+        Institutional preset factory for Crypto Linear Perpetual Contracts.
+        Defaults to Binance BTCUSDT standards while allowing complete customization
+        for any arbitrary crypto asset (e.g., AAVE, ETH, SOL, DOGE).
+
+        :param symbol: Ticker symbol (e.g., 'BTCUSDT', 'AAVEUSDT').
+        :param strategy_name: Identifier for the strategy instance.
+        :param slippage_pct: Slippage rate (default: 0.0005 = 0.05% / 5 bps).
+        :param fee_pct: Commission rate (default: 0.0005 = 0.05% / 5 bps).
+        :param timeframe: Bar timeframe (e.g., '30m', '1h', '1d').
+        :param history_data_path: Path to historical CSV or data store.
+        :param multiplier: Contract point multiplier (default: 1.0).
+        :param tick_size: Minimum price increment (e.g., 0.1 for BTC, 0.01 for ETH/AAVE).
+        :param lot_size: Step size for trade quantity (e.g., 0.001 for BTC, 0.01 for AAVE).
+        :param min_order_qty: Minimum allowable order quantity.
+        :param currency: Settlement currency (e.g., 'USDT', 'USDC').
+        :param initial_margin_rate: Initial margin requirement (1.0 = 1x leverage, 0.1 = 10x leverage).
+        :param maintenance_margin_rate: Maintenance margin requirement before liquidation.
+        :param slippage_type: Slippage calculation model.
+        :param fee_type: Fee calculation model.
+        :param min_fee: Minimum commission floor.
+        :param tax_rate: Transaction tax rate (default: 0.0).
+        :param tax_type: Tax calculation model (default: ZERO).
+        :param extra_params: Optional dictionary of supplementary strategy parameters.
+        :return: Fully configured StrategyConfig instance.
         """
         instrument = InstrumentConfig(
             symbol=symbol,
             asset_class=AssetClass.CRYPTO_PERPETUAL,
-            multiplier=1.0,
-            tick_size=0.1,
-            lot_size=0.001,
-            min_order_qty=0.001,
-            currency="USDT",
+            multiplier=multiplier,
+            tick_size=tick_size,
+            lot_size=lot_size,
+            min_order_qty=min_order_qty,
+            currency=currency,
+            initial_margin_rate=initial_margin_rate,
+            maintenance_margin_rate=maintenance_margin_rate,
         )
         slippage = SlippageConfig(
-            slippage_type=SlippageType.PERCENTAGE, value=slippage_pct
+            slippage_type=slippage_type,
+            value=slippage_pct,
         )
-        fee = FeeConfig(fee_type=FeeType.PERCENTAGE, rate=fee_pct)
-        tax = TaxConfig(tax_type=TaxType.ZERO, rate=0.0)
+        fee = FeeConfig(
+            fee_type=fee_type,
+            rate=fee_pct,
+            min_fee=min_fee,
+        )
+        tax = TaxConfig(
+            tax_type=tax_type,
+            rate=tax_rate,
+        )
         return StrategyConfig(
             name=strategy_name,
             instrument=instrument,
@@ -447,4 +485,5 @@ class PresetFactory:
             tax=tax,
             timeframe=timeframe,
             history_data_path=history_data_path,
+            extra_params=extra_params if extra_params is not None else {},
         )
