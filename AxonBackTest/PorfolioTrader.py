@@ -346,6 +346,7 @@ class PortfolioManagement:
                                 "friction": friction,
                                 "realized_pnl": trade_realized_pnl,
                                 "position_after": state.quantity,
+                                "is_close": is_close,
                             }
                         )
 
@@ -455,9 +456,11 @@ class PortfolioManagement:
 
         # Trade Analytics
         total_trade_count = len(self.trades)
-        closed_trades = [t for t in self.trades if t["realized_pnl"] != 0.0]
+        open_trades = [t for t in self.trades if not t.get("is_close", False)]
+        closed_trades = [t for t in self.trades if t.get("is_close", False)]
         win_trades = [t for t in closed_trades if t["realized_pnl"] > 0]
         loss_trades = [t for t in closed_trades if t["realized_pnl"] < 0]
+        breakeven_trades = [t for t in closed_trades if t["realized_pnl"] == 0.0]
 
         win_rate = len(win_trades) / len(closed_trades) if closed_trades else 0.0
         gross_profit = sum(t["realized_pnl"] for t in win_trades)
@@ -480,9 +483,11 @@ class PortfolioManagement:
             "max_drawdown_amount": round(max_drawdown_amount, 4),
             "sharpe_ratio": round(sharpe_ratio, 4),
             "total_trades": total_trade_count,
+            "open_trades": len(open_trades),
             "closed_trades": len(closed_trades),
             "win_trades": len(win_trades),
             "loss_trades": len(loss_trades),
+            "breakeven_trades": len(breakeven_trades),
             "win_rate": round(win_rate, 4),
             "win_rate_pct": f"{round(win_rate * 100, 2)}%",
             "profit_factor": round(profit_factor, 4) if profit_factor != float("inf") else "inf",

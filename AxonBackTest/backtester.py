@@ -8,8 +8,6 @@ import numpy as np
 import copy
 
 
-
-
 class BackTester():
     def __init__(self, manager: PortfolioManagement = None):
         """
@@ -31,7 +29,10 @@ class BackTester():
             self.generate_report()
 
         report_df = pd.DataFrame(self.report)
-
+        # for i in report_df.index:
+        #     print(report_df.iloc[i])
+        #     print("*"*120)
+        #     time.sleep(1)
         # 將 datetimelist 設置為索引並轉換為日期時間格式
         report_df['datetimelist'] = pd.to_datetime(report_df['datetimelist'])
         report_df.set_index('datetimelist', inplace=True)
@@ -47,10 +48,6 @@ class BackTester():
         plt.grid(True)
         plt.show()
 
-    def print_paramter_info(self):
-        for key, value in self.pfm.parameter_info.items():
-            print("參數名稱:", key, "目前設定值:", value)
-
     def print_metrics(self):
         """Prints formatted statistical summary metrics."""
         print("=" * 50)
@@ -59,4 +56,3 @@ class BackTester():
         for key, value in self.pfm.metrics.items():
             print(f"{key:25s}: {value}")
         print("=" * 50)
-
