@@ -1,5 +1,6 @@
-import pandas as pd
-from AxonBackTest.config import PresetFactory
+from AxonBackTest.PorfolioTrader import PortfolioManagement
+from AxonBackTest.backtester import BackTester
+from AxonBackTest.config import PortfolioConfig, PresetFactory
 from AxonBackTest.strategy import Strategy
 
 # 1. Preset configuration for AAVEUSDT Perpetual Strategy
@@ -10,13 +11,13 @@ aave_config = PresetFactory.crypto_perpetual(
 )
 
 # 2. Initialize Strategy and load data from CSV
-strategy = Strategy(config=aave_config)
-strategy.load_data_from_csv()
+aave_strategy = Strategy(config=aave_config)
+aave_strategy.load_data_from_csv()
 
-# 3. Preview loaded data and target position changes
-print("=== Strategy Data Successfully Loaded ===")
-print("Strategy Name:", strategy.config.name)
-print("Instrument Symbol:", strategy.config.instrument.symbol)
-print("Data Shape:", strategy.df.shape)
-print("\nFirst 10 Bars Overview:")
-print(strategy.df.head(10))
+# 3. Setup Portfolio Manager & BackTester
+pfm = PortfolioManagement(config=PortfolioConfig(initial_capital=10000.0, leverage=1.0))
+pfm.register_strategys(aave_strategy)
+
+bt = BackTester(manager=pfm)
+bt.generate_report()
+bt.print_metrics()

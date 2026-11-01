@@ -126,3 +126,7 @@ class Strategy:
         elif not self.df.empty and "Position" in self.df.columns:
             return self.df["Position"].tolist()
         return []
+    
+    @property
+    def strategyName(self) -> str:
+        return self.config.name

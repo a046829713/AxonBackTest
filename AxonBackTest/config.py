@@ -330,9 +330,7 @@ class PortfolioConfig:
     leverage: float = 1.0
     start_date: Optional[str] = None
     end_date: Optional[str] = None
-    risk_free_rate: float = 0.02
-    base_currency: str = "USD"
-    max_active_positions: int = 10
+    base_currency: str = "USDT"
     formal: bool = False
 
     def __post_init__(self):

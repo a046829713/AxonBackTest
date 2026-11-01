@@ -23,10 +23,13 @@ class BackTester():
         self.pfm.activate()
 
     def generate_report(self):
-        self.pfm.generate_report()
+        self.report = self.pfm.generate_report()
         return self.report
 
     def plot_image(self):
+        if self.report is None:
+            self.generate_report()
+
         report_df = pd.DataFrame(self.report)
 
         # 將 datetimelist 設置為索引並轉換為日期時間格式
@@ -47,3 +50,13 @@ class BackTester():
     def print_paramter_info(self):
         for key, value in self.pfm.parameter_info.items():
             print("參數名稱:", key, "目前設定值:", value)
+
+    def print_metrics(self):
+        """Prints formatted statistical summary metrics."""
+        print("=" * 50)
+        print("          Portfolio Performance Metrics           ")
+        print("=" * 50)
+        for key, value in self.pfm.metrics.items():
+            print(f"{key:25s}: {value}")
+        print("=" * 50)
+
