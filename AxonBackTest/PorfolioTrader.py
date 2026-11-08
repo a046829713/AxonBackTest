@@ -7,41 +7,16 @@ vectorized multi-asset time alignment, and mark-to-market NAV accounting.
 """
 
 from __future__ import annotations
-from dataclasses import dataclass, field
+
 from typing import List, Dict, Any, Optional, Union
 import numpy as np
 import pandas as pd
 from AxonBackTest import config
 from AxonBackTest.config import OrderSide, PortfolioConfig
+from AxonBackTest.interface import PortfolioSimulationContext, PositionState
 from AxonBackTest.strategy import Strategy
 import time
 
-@dataclass
-class PositionState:
-    """Tracks running execution and position state for a single strategy."""
-
-    strategy_name: str
-    symbol: str
-    quantity: float = 0.0
-    avg_entry_price: float = 0.0
-    realized_pnl: float = 0.0
-    unrealized_pnl: float = 0.0
-    total_fee: float = 0.0
-    total_slippage: float = 0.0
-    total_tax: float = 0.0
-    total_trades: int = 0
-
-
-@dataclass
-class PortfolioSimulationContext:
-    """Encapsulates running cash and accumulated friction state during simulation."""
-
-    cash: float
-    cum_realized_pnl: float = 0.0
-    cum_fee: float = 0.0
-    cum_slippage: float = 0.0
-    cum_tax: float = 0.0
-    cum_friction: float = 0.0
 
 
 class PortfolioManagement:
@@ -69,6 +44,9 @@ class PortfolioManagement:
         self.trades: List[Dict[str, Any]] = []
         self.position_states: Dict[str, PositionState] = {}
 
+
+        self._validate_settings()
+
     @property
     def strategies(self) -> List[Strategy]:
         """Convenience accessor for registered strategies."""
@@ -89,10 +67,6 @@ class PortfolioManagement:
             "formal": self.formal,
         }
 
-    def activate(self) -> None:
-        """Activates and validates portfolio settings."""
-        self._validate_settings()
-
     def _validate_settings(self) -> None:
         """Validates portfolio runtime settings."""
         if self.config.initial_capital <= 0:
@@ -100,16 +74,12 @@ class PortfolioManagement:
         if self.config.leverage <= 0:
             raise ValueError(f"Leverage must be positive: {self.config.leverage}")
 
-    def register_strategys(self, strategys: Union[List[Strategy], Strategy]) -> None:
-        """Registers one or more Strategy instances into the portfolio."""
-        if isinstance(strategys, list):
-            self.strategys.extend(strategys)
-        elif isinstance(strategys, Strategy):
-            self.strategys.append(strategys)
-
     def register_strategies(self, strategies: Union[List[Strategy], Strategy]) -> None:
-        """Standardized English alias for register_strategys."""
-        self.register_strategys(strategies)
+        """Registers one or more Strategy instances into the portfolio."""
+        if isinstance(strategies, list):
+            self.strategys.extend(strategies)
+        elif isinstance(strategies, Strategy):
+            self.strategys.append(strategies)
 
     def time_min_scale(self) -> pd.DatetimeIndex:
         """
@@ -186,6 +156,8 @@ class PortfolioManagement:
         """
         for s in self.strategys:
             name = s.strategyName
+            
+
             state = self.position_states[name]
             inst = s.config.instrument
 
@@ -316,6 +288,7 @@ class PortfolioManagement:
                         }
                     )
 
+
     def _evaluate_close_mtm(
         self,
         k: int,
@@ -385,7 +358,7 @@ class PortfolioManagement:
         report_dict: Dict[str, Any] = {
             "datetimelist": datetimelist,
             "Datetime": timestamps,
-            "CloseProfit": equity_records,  # Preserved for BackTester.plot_image compatibility
+            "CloseProfit": cash_records,  # Realized cash balance (Initial Capital + Realized PnL - Friction)
             "Equity": equity_records,
             "Cash": cash_records,
             "UnrealizedPnL": unrealized_records,
@@ -499,7 +472,6 @@ class PortfolioManagement:
         - At bar Open: evaluate target position change (ΔQ) and execute orders at Open price with slippage and fees.
         - At bar Close: mark-to-market valuation at Close price to calculate unrealized PnL and total NAV equity.
         """
-        self.activate()
         if not self.strategys:
             raise ValueError("No strategies registered in PortfolioManagement.")
 
@@ -508,6 +480,8 @@ class PortfolioManagement:
             raise ValueError("No market data found across registered strategies.")
 
         aligned_arrays = self._align_market_arrays()
+
+
         n_strategies = len(self.strategys)
         n_bars = len(self.min_scale)
 
